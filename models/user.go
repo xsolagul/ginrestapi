@@ -12,7 +12,8 @@ type User struct {
 	ID    int `json:"id,omitempty" gorm:"primary_key;auto_increment"`
 	Name  string `json:"name,omitempty" gorm:"unique;notnull"`
 	Email string `json:"email,omitempty" gorm:"unique;notnull"`
-	Password string `json:"-" gorm:"notnull"`
+	Password string `json:"-" gorm:"not null"`
+	Role string `json:"-" gorm:"notnull;default:user"`
 	CreatedAt time.Time
 }
 

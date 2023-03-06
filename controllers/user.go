@@ -17,11 +17,12 @@ import (
 type UserRepo struct {
 	Db *gorm.DB
 }
+//struct for only create user from client 
 type UserFromClient struct {
 	//ID    int `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password,omitempty" binding:"required"`
 }
 
 func NewUserRepo(db *gorm.DB) *UserRepo {
@@ -34,12 +35,15 @@ func NewUserRepo(db *gorm.DB) *UserRepo {
 func (repository *UserRepo) CreateUser(c *gin.Context) {
 	var user models.User
 	var data UserFromClient
-	c.BindJSON(&data)
+	err := c.BindJSON(&data)
+	if err != nil {
+		return
+	}
 	user.Email = data.Email
 	user.Name = data.Name
 	user.Password = data.Password
 	//bind json with other struct and set to user struct after
-	err := models.CreateUser(repository.Db, &user)
+	err = models.CreateUser(repository.Db, &user)
 	if err != nil {
 		if strings.Contains(err.Error(), "Duplicate") {
 			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"error": err})

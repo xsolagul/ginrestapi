@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"simplerestapi/common"
 	"simplerestapi/controllers"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,8 @@ func SetUserRoute(r *gin.Engine,db *gorm.DB) {
 	
 	userRepo := controllers.NewUserRepo(db)
 	userGroup := r.Group("/")
+	authTool := common.NewTokenTool(db)
+	userGroup.Use(authTool.AuthorizationMiddleware("user"))
 	userGroup.POST("/users", userRepo.CreateUser)
 	userGroup.GET("/users", userRepo.GetUsers)
 	userGroup.GET("/users/:id", userRepo.GetUser)

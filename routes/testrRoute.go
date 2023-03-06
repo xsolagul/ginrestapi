@@ -7,8 +7,8 @@ import (
 )
 
 func SetGetPong(r *gin.Engine) {
-	
-	r.GET("ping", func(c *gin.Context) {
+	test := r.Group("/")
+	test.GET("ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "ponger")
 	 })
 }
