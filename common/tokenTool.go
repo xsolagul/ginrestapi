@@ -102,6 +102,7 @@ func (t *tokenTool) AuthorizationMiddleware(allowedRoles ...string) gin.HandlerF
 				userRoles := user.Role
 				for _, role := range allowedRoles {
 					if role == userRoles {
+						c.Set("userId",user.ID)
 						return
 					}
 				}

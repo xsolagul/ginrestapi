@@ -14,6 +14,7 @@ type User struct {
 	Email string `json:"email,omitempty" gorm:"unique;notnull"`
 	Password string `json:"-" gorm:"not null"`
 	Role string `json:"-" gorm:"notnull;default:user"`
+	Posts []Post `gorm:"foreignKey:UserID"` 
 	CreatedAt time.Time
 }
 
@@ -69,7 +70,7 @@ func UpdateUser(db *gorm.DB, user *User, id int) (err error) {
 	// oldData.Name = user.Name
 	// oldData.Email = user.Email
 	//err = db.Save(&oldData).Error
-	err = db.Where("id = ?", id).Updates(oldData).Error
+	err = db.Where("id = ?", id).Updates(&oldData).Error
 	if err != nil {
 		return err
 	}

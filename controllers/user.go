@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -41,7 +42,14 @@ func (repository *UserRepo) CreateUser(c *gin.Context) {
 	}
 	user.Email = data.Email
 	user.Name = data.Name
-	user.Password = data.Password
+	// Hashing the password with the default cost of 10
+	password := []byte(data.Password)
+    hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	user.Password = string(hashedPassword)
 	//bind json with other struct and set to user struct after
 	err = models.CreateUser(repository.Db, &user)
 	if err != nil {

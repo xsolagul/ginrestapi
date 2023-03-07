@@ -21,6 +21,7 @@ func setupRouter() *gin.Engine {
 	routes.SetGetPong(r)
 	routes.SetUserRoute(r,db)
 	routes.SetAuthRoute(r,db)
+	routes.SetPostRoute(r,db)
 
 	return r
 }

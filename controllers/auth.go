@@ -8,6 +8,7 @@ import (
 	"simplerestapi/models"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +36,11 @@ func (repository *AuthRepo) Login(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	if input.Password != user.Password {
+	fmt.Println(user.Password)
+	fmt.Println(input.Password)
+	errC := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(input.Password))
+	if errC != nil {
+		fmt.Println(errC)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "password not correct"})
 		return
 	}else {
