@@ -85,7 +85,7 @@ func (t *tokenTool) AuthorizationMiddleware(allowedRoles ...string) gin.HandlerF
 		token := strings.TrimPrefix(s, "Bearer ")
 
 		if Claims, err := validateToken(token); err != nil {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			c.AbortWithStatusJSON(http.StatusUnauthorized,gin.H{"error": err.Error()})
 			return
 		} else {
 			var user models.User

@@ -83,6 +83,15 @@ func (repository *PostRepo) UpdatePost(c *gin.Context) {
 
 	c.BindJSON(&post)
 	post.ID = id
+	errC := checkPostUserId(c,repository,id)
+	if errC != nil {
+		if errC.Error() == "userId not match" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": errC.Error()})
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": errC})
+		return
+	}
 	err := models.UpdatePost(repository.Db, &post , id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -92,6 +101,7 @@ func (repository *PostRepo) UpdatePost(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
+
 	c.JSON(http.StatusOK, post)
 }
 
@@ -109,10 +119,13 @@ func (repository *PostRepo) DeletePost(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	value := c.MustGet("userId")
-	userId := uint(value.(int))
-	if userId != post.UserID {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "userId not match"})
+	errC := checkPostUserId(c,repository,id)
+	if errC != nil {
+		if errC.Error() == "userId not match" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": errC.Error()})
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": errC})
 		return
 	}
 	err = models.DeletePost(repository.Db, &post, id)
@@ -126,4 +139,18 @@ func (repository *PostRepo) DeletePost(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
+}
+func checkPostUserId(c *gin.Context,repository *PostRepo,id int ) error {
+	var post models.Post
+	err := models.GetPost(repository.Db, &post, id)
+	if err != nil {
+		return err 
+	}
+	//change to return error
+	value := c.MustGet("userId")
+	userId := uint(value.(int))
+	if userId != post.UserID {
+		return errors.New("userId not match")
+	}
+	return nil
 }
