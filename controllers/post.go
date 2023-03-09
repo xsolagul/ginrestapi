@@ -17,7 +17,10 @@ import (
 type PostRepo struct {
 	Db *gorm.DB
 }
-
+type PageResponse struct {
+    Post interface{} `json:"post"`
+    Count interface{} `json:"count"`
+}
 
 func NewPostRepo(db *gorm.DB) *PostRepo {
 	//db := database.InitDb()//guess do one time
@@ -51,12 +54,25 @@ func (repository *PostRepo) CreatePost(c *gin.Context) {
 // get users
 func (repository *PostRepo) GetPosts(c *gin.Context) {
 	var posts []models.Post
-	err := models.GetPosts(repository.Db, &posts)
+    page := c.DefaultQuery("page", "1")
+    pageInt, errP := strconv.Atoi(page)
+    if errP != nil {
+        c.AbortWithError(http.StatusBadRequest, errP)
+        return
+    }
+	size := c.DefaultQuery("size", "1")
+    sizeInt, errS := strconv.Atoi(size)
+    if errS != nil {
+        c.AbortWithError(http.StatusBadRequest, errP)
+        return
+    }
+	count,err := models.GetPagePosts(repository.Db,&posts,pageInt,sizeInt)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.JSON(http.StatusOK, posts)
+	response := PageResponse{Post: posts,Count: count}
+	c.JSON(http.StatusOK, response)
 }
 
 // get user by id

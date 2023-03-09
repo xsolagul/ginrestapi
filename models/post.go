@@ -17,7 +17,7 @@ type Post struct {
 	CreatedAt time.Time
 }
 
-// create a user
+// create a post
 func CreatePost(db *gorm.DB, post *Post) (err error) {
 	err = db.Create(post).Error
 	if err != nil {
@@ -30,7 +30,7 @@ func CreatePost(db *gorm.DB, post *Post) (err error) {
 	return nil
 }
 
-// get users
+// get post
 func GetPosts(db *gorm.DB, post *[]Post) (err error) {
 	err = db.Preload("User",func(db *gorm.DB) *gorm.DB {
 		return db.Select("id,name")}).Find(post).Error
@@ -40,7 +40,22 @@ func GetPosts(db *gorm.DB, post *[]Post) (err error) {
 	return nil
 }
 
-// get user by id
+func GetPagePosts(db *gorm.DB, post *[]Post,page int,pageSize int)(int64, error){
+	var count int64 
+	offset := (page - 1)*pageSize
+
+	if err := db.Model(&Post{}).Count(&count).Error; err != nil {
+        return  0, err
+    }
+
+    // retrieve users with pagination
+    if err := db.Limit(pageSize).Offset(offset).Find(post).Error; err != nil {
+        return  0, err
+    }
+	return count,nil
+}
+
+// get post by id
 func GetPost(db *gorm.DB, post *Post, id int) (err error) {
 	err = db.Preload("User",func(db *gorm.DB) *gorm.DB {
 		return db.Select("id,name")}).Where("id = ?", id).First(post).Error
@@ -50,7 +65,7 @@ func GetPost(db *gorm.DB, post *Post, id int) (err error) {
 	return nil
 }
 
-// update user
+// update post
 func UpdatePost(db *gorm.DB, post *Post, id int) (err error) {
 	var oldData Post
 	err = GetPost(db, &oldData, id)
@@ -70,7 +85,7 @@ func UpdatePost(db *gorm.DB, post *Post, id int) (err error) {
 	return nil
 }
 
-// delete user
+// delete post
 func DeletePost(db *gorm.DB, post *Post, id int) (err error) {
 	result := db.Where("id = ?", id).Delete(post)
 	err = result.Error
